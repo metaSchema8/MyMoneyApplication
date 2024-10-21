@@ -1,0 +1,249 @@
+﻿Money Management Application
+
+Part 1 - Project Details
+
+This Application is about Money Management which consists of Account details, and transactions
+We can also generate the expense and income details and reports between date ranges / Monthly / Yearly
+
+Accounts
+Transactions
+	- Income
+	- Expense
+	- Transfer From Account to Account
+
+Part 2 - Project Base Set Up
+
+1. Creating ASP.Net Empty Project
+	Solution Name - MyMoneyApplication
+	Project Name - MyMoneyAPI (consists of API related files)
+
+2. Add API Services and Routing in Program.cs file
+
+3. Creating Controllers Folder and Add API Controllers (*Do Not Add MVC Controller)
+	- Create Accounts Controller 
+		(Add sample Get Method to test, later we can develop this controller)
+
+		[HttpGet]
+        public IActionResult Get()
+        {
+            return Ok(new { message = "Account Details" });
+        }
+
+4. Add Swagger
+	Install the Swashbuckle.AspNetCore NuGet package: Install-Package Swashbuckle.AspNetCore
+	Also, Install Annotations package to provide detailed descriptions for our API methods : Install-Package Swashbuckle.AspNetCore.Annotations
+	
+	// Add services to the container.
+	builder.Services.AddControllers();
+	builder.Services.AddEndpointsApiExplorer();
+	builder.Services.AddSwaggerGen(c =>
+	{
+	    c.EnableAnnotations(); // Enable Swagger annotations
+	});
+
+	
+	var app = builder.Build();
+	
+	// Enable middleware to serve generated Swagger as a JSON endpoint.
+	if (app.Environment.IsDevelopment())
+	{
+	    app.UseSwagger();
+	    app.UseSwaggerUI();
+	}
+
+	Set Swagger as default Page
+
+	app.UseSwaggerUI(c =>
+    {
+        // Set Swagger as the default launch page
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        c.RoutePrefix = string.Empty; // Set the Swagger UI at the root of the application
+    });
+
+5. Install Entity Framework
+
+	Install-Package Microsoft.EntityFrameworkCore
+	Install-Package Microsoft.EntityFrameworkCore.SqlServer
+	Install-Package Microsoft.EntityFrameworkCore.Tools
+
+	EntityFrameworkCore is for general EF Core functionality (setting up models, querying, and tracking changes).
+	EntityFrameworkCore.SqlServer is for working specifically with SQL Server
+	EntityFrameworkCore.Tools is for command-line tools like migrations.
+
+	**Check compatible version of the package before installing
+
+6. Create Models folder
+	
+	We are adding common auditing properties (e.g., CreatedBy, CreatedDate, ModifiedBy, ModifiedDate, IsActive) to our entities.
+	So, We are creating base audit class
+
+	Create AuditEntity abstract Class with above mentioned properties
+	Inherit the AuditEntity in other Entities
+
+	Create Account Entity 
+	
+	Note - We can also have data annotations like Required, MaxLength, Key, and ForeignKey in the entity or Fluent API 
+
+7. Create Data Folder for DbContext and DB Table Configurations for EF Core (Sub Folder - Configurations)
+
+	Create a class for Account Configuration with Property and table mappings
+
+	Configure DbContext to define DBSet Properties and to Apply Fluent API Configurations
+
+8. Configure Connection String in appsettings.json
+
+	{
+	  "ConnectionStrings": {
+	    "DefaultConnection": "Server=your_server_name;Database=YourDatabaseName;User Id=your_username;Password=your_password;Trusted_Connection=False;MultipleActiveResultSets=true"
+	  }
+	}
+
+	Know the differences between SQL Server Authentication and Windows Authentication
+	Also, about each property like Server, Database, UserId, Password, Trusted_Connection, and MultipleActiveResultSets
+
+9. Configure Database Connection in Program.cs
+
+10. Apply Migration
+
+	In the Package Manager Console, Run the command
+	Add-Migration InitialCreate
+	
+	This will generate a migration file in the Migrations folder that contains the necessary code to create the database schema based on our current model state.
+	Open the file to review the generated code. It will contain Up and Down methods:
+		The Up method applies the changes to the database (creating tables, etc.)
+		The Down method reverts the changes (dropping tables, etc.)
+
+	After reviewing, apply the migration to our database by running the following command:
+	Update-Database
+
+	This command updates our database schema to match our model by executing the SQL generated in the migration file.
+	Verify the changes in our database using a database management tool (like SSMS).
+
+
+Part 3 - Implementing the Action Methods
+
+11. Implementing Add Account Action Method
+	(Remove Sample Code and write an action method to create an account)
+
+	As we are inserting the account data, it must be a HTTP POST Method.
+	Also, add the swagger annotations to understand about the end point
+
+12. Create DTO folder (Data Transfer Object)
+	
+	This folder will consider the request and response classes of each controller
+	Create AccountCreateRequest class, with the request details provided by the user.
+
+	Now, Modify the Above Add Account Action Method to received the AccountCreateRequest as parameter
+
+13. Add Services Folder for services and interfaces
+
+	We need to understand that the development code should be inside the service class.
+	Also, each service class method must derive from the interface to maintain the contract rule, which helps the developer not to create multiple methods.
+
+	Create interface in sub folder interfaces, and Create service class that implements interface in main folder
+
+14. Interface, Service class, and registering the service
+
+	Declare AddAccount Method in interface and implement in the service class
+
+	Also, register the service class in program.cs file
+	(To make the code simpler and more organized by separating concerns, we can split up the configuration logic, such as registering services, into smaller, more maintainable methods)
+
+	Create ServiceExtensions static class user Extensions Folder and register the services
+	Also, modify the program.cs file
+
+15. Modifying AddAccount Action
+
+	Make a call to the service class to add account from the action method of the controller
+	The service method should validate the data and if it is valid, store the data in Accounts table
+		
+16. Create common response class to send error and success messages
+
+	We can create a generic class that provides flexibility for different types of responses (e.g., success, errors, and additional data)
+
+	Create a folder name called common and create the ApiResponse Class, ListApiResponse class in the folder
+	The common properties in response class be placed in abstract class of base response
+
+	Change the Interface return methods if common response class is used and also, the services
+
+17. Validating data and Creating ErrorMessages static Class
+	
+	Creating ErrorMessages static Class to store all error messages improves consistency, maintainability, and scalability. The code will be cleaner, more readable, and much easier to maintain.
+
+	We can also create Success Messages class. Place these class files in common folder itself.
+
+18. Add HTTP Status Codes in a static Class to avoid hardcoding status codes throughout the services and controller methods.
+
+19. To generate XML documentation for an API endpoint (Optional)
+
+	We can use XML comments directly above the method in our controller. These comments will be processed by Swagger to automatically generate documentation for the endpoint.
+
+	Ensure XML Documentation is Enabled in the Project Settings
+	Right-click your project -> select Properties -> Build tab -> Output -> check the box labeled XML documentation file
+	-> Specify the file path  bin\Debug\net6.0\MyMoneyApp.xml -> Save and rebuild the project
+
+	Swagger Configuration
+
+	services.AddSwaggerGen(c =>
+    {
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    });
+
+	Rebuild the solution - The XML file is generated only when you build the project, so if the file doesn’t exist or is missing content, the rebuild ensures the file is created and up-to-date.
+
+	Sample XML Comments to get all accounts information
+
+		/// <summary>
+        /// Retrieves all accounts from the system.
+        /// </summary>
+        /// <remarks>
+        /// This API endpoint fetches all the accounts from the database.
+        /// If there are no accounts, an empty list is returned.
+        /// </remarks>
+        /// <returns>A list of accounts.</returns>
+        /// <response code="200">Returns the list of all accounts</response>
+        /// <response code="500">If an internal server error occurs</response>
+
+20. To push a .NET app to Git
+
+	Make sure Git is installed locally and a git account exists
+
+	Initialize a Git Repository
+	Open a terminal/command prompt and navigate to the .NET project’s root directory to Initialize a local Git repository
+
+	git init
+
+	Add .gitignore File
+	Create a .gitignore file to exclude files and directories that you don’t want to push to the Git repository, such as build files, NuGet packages, and user-specific settings.
+
+	Add Files to Staging
+	Stage all your project files by running the following command:
+	git add .
+
+	Commit Your Changes
+	Commit the staged changes to your local Git repository with a message describing the changes (e.g., initial commit):
+	git commit -m "Initial commit"
+
+	Add Remote Repository
+	Link local Git repository to a remote repository
+	git remote add origin https://github.com/metaSchema8/MyMoneyApplication.git
+
+	Push Your Code to Remote Repository
+	git push -u origin master
+
+	Verify Your Changes on GitHub
+
+	git init: Initialize a local Git repository.
+	git add .: Stage all changes.
+	git commit -m "message": Commit staged changes with a message.
+	git remote add origin [URL]: Add the remote Git repository (e.g., GitHub).
+	git push -u origin master: Push changes to the remote repository.
+	git pull origin master: Pull changes from the remote repository.
+
+
+
+
+
+	

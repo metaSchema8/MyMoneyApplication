@@ -1,0 +1,20 @@
+# Ignore build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+
+# Logs
+*.log
+
+# Visual Studio Code directories
+.vscode/
+
+# Rider IDE files
+.idea/
+
+# Secrets and keys
+appsettings.json
+appsettings.Development.json
