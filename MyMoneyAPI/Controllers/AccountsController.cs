@@ -18,11 +18,17 @@ namespace MyMoneyAPI.Controllers
 
         #region Add Account
 
+        /// <summary>
+        /// Creates a new account
+        /// </summary>
+        /// <remarks>
+        /// Adds a new account to the system using the provided details such as Account Name, BaseAmount, and Icon.
+        /// </remarks>
+        /// <returns>Account Creation Status.</returns>
+        /// <response code="200">Returns Account Creation Successful Message</response>
+        /// <response code="400">If Account Name is Empty / Bad Request</response>
+        /// <response code="500">If there is an internal server error</response>
         [HttpPost("AddAccount")]
-        [SwaggerOperation(
-            Summary = "Creates a new account",
-            Description = "Adds a new account to the system using the provided details such as Account Name, BaseAmount, and Icon."
-        )]
         public IActionResult AddAccount([FromBody] AccountCreateRequest accCreateReq)
         {
             var response = _accountService.AddAccount(accCreateReq);
@@ -51,7 +57,7 @@ namespace MyMoneyAPI.Controllers
 
         #endregion
 
-        #region Get All Accounts
+        #region Delete Account
 
         [HttpPatch("DeleteAccounts")]
         [SwaggerOperation(

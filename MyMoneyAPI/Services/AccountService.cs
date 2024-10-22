@@ -31,6 +31,7 @@ namespace MyMoneyAPI.Services
                 {
                     AccountName = accCreateReq.AccountName,
                     BaseAmount = accCreateReq.BaseAmount,
+                    Balance = accCreateReq.BaseAmount,
                     Icon = accCreateReq.Icon,
                     CreatedBy = "System",
                     CreatedDate = DateTimeOffset.Now,
