@@ -29,7 +29,7 @@ namespace MyMoneyAPI.Controllers
         /// <response code="400">If Account Name is Empty / Bad Request</response>
         /// <response code="500">If there is an internal server error</response>
         [HttpPost("AddAccount")]
-        public IActionResult AddAccount([FromBody] AccountCreateRequest accCreateReq)
+        public IActionResult AddAccount([FromBody] AccountRequest accCreateReq)
         {
             var response = _accountService.AddAccount(accCreateReq);
             return StatusCode(response.StatusCode, response);
@@ -72,6 +72,25 @@ namespace MyMoneyAPI.Controllers
 
         #endregion
 
+        #region Update Account
 
+        /// <summary>
+        /// Updates the account information for a specific account.
+        /// </summary>
+        /// <param name="accountId">The unique identifier of the account to be updated.</param>
+        /// <param name="updateAccountReq">The account details to be updated.</param>
+        /// <returns>Returns a status message indicating the result of the update operation.</returns>
+        /// <response code="200">If the account was successfully updated</response>
+        /// <response code="400">If the provided data is invalid</response>
+        /// <response code="404">If the account with the specified ID is not found</response>
+        /// <response code="500">If an internal server error occurs during the update</response>
+        [HttpPut("UpdateAccount/{accountId}")]
+        public IActionResult AddAccount(long accountId, [FromBody] AccountRequest updateAccountReq)
+        {
+            var response = _accountService.UpdateAccount(accountId, updateAccountReq);
+            return StatusCode(response.StatusCode, response);
+        }
+
+        #endregion
     }
 }

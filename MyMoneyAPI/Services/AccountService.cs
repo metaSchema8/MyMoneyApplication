@@ -13,18 +13,21 @@ namespace MyMoneyAPI.Services
     {
         private readonly ApplicationDbContext _appDbContext;
 
+        private const string ACCOUNTCREATE = "CREATE";
+        private const string ACCOUNTUPDATE = "UPDATE";
+
         public AccountService(ApplicationDbContext appDbContext)
         {
             _appDbContext = appDbContext;
         }
 
-        public ApiResponse<AccountCreationResponse> AddAccount(AccountCreateRequest accCreateReq)
+        public ApiResponse<AccountResponse> AddAccount(AccountRequest accCreateReq)
         {
             try
             {
                 if (string.IsNullOrEmpty(accCreateReq.AccountName))
                 {
-                    return new ApiResponse<AccountCreationResponse>(HttpStatusCodes.BadRequest, ErrorMessages.InValidAccountName);
+                    return new ApiResponse<AccountResponse>(HttpStatusCodes.BadRequest, ErrorMessages.AccountNameEmpty);
                 }
 
                 var accountData = new AccountEntity
@@ -43,19 +46,12 @@ namespace MyMoneyAPI.Services
                 _appDbContext.Accounts.Add(accountData);
                 _appDbContext.SaveChanges();
 
-                var result = new AccountCreationResponse
-                {
-                    AccountName = accountData.AccountName,
-                    BaseAmount = accountData.BaseAmount,
-                    Icon = accountData.Icon,
-                    Balance = accountData.BaseAmount
-                };
+                return accountReponse(accountData, ACCOUNTCREATE);
 
-                return new ApiResponse<AccountCreationResponse>(result, HttpStatusCodes.Ok, SuccessMessages.AccountCreated);
             }
             catch (Exception ex)
             {
-                return new ApiResponse<AccountCreationResponse>(HttpStatusCodes.InternalServerError, ex.Message);
+                return new ApiResponse<AccountResponse>(HttpStatusCodes.InternalServerError, ex.Message);
             }
 
         }
@@ -106,6 +102,61 @@ namespace MyMoneyAPI.Services
             {
                 return new ApiResponse<string>(ex.Message, HttpStatusCodes.InternalServerError);
             }
+        }
+
+        public ApiResponse<AccountResponse> UpdateAccount(long accountId, AccountRequest updateAccountReq)
+        {
+            try
+            {
+                if (accountId <= 0 )
+                {
+                    return new ApiResponse<AccountResponse>(HttpStatusCodes.BadRequest, ErrorMessages.InValidAccountId);
+                }
+
+                if (string.IsNullOrEmpty(updateAccountReq.AccountName))
+                {
+                    return new ApiResponse<AccountResponse>(HttpStatusCodes.BadRequest, ErrorMessages.AccountNameEmpty);
+                }
+
+                var data = _appDbContext.Accounts.Where(x => x.AccountId == accountId).FirstOrDefault();
+                if(data is null)
+                {
+                    return new ApiResponse<AccountResponse>(HttpStatusCodes.NotFound, ErrorMessages.AccountNotFound);
+                }
+
+                var accountData = new AccountEntity
+                {
+                    AccountName = updateAccountReq.AccountName,
+                    BaseAmount = updateAccountReq.BaseAmount,
+                    Balance = updateAccountReq.BaseAmount,
+                    Icon = updateAccountReq.Icon,
+                    ModifiedBy = "System",
+                    ModifiedDate = DateTimeOffset.Now,
+                    IsActive = true
+                };
+
+                _appDbContext.Accounts.Update(accountData);
+                _appDbContext.SaveChanges();
+
+                return accountReponse(accountData, ACCOUNTUPDATE);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<AccountResponse>(HttpStatusCodes.InternalServerError, ex.Message);
+            }
+        }
+
+        private ApiResponse<AccountResponse> accountReponse(AccountEntity account, string Status)
+        {
+            var result = new AccountResponse
+            {
+                AccountName = account.AccountName,
+                BaseAmount = account.BaseAmount,
+                Icon = account.Icon,
+                Balance = account.BaseAmount
+            };
+
+            return new ApiResponse<AccountResponse>(result, HttpStatusCodes.Ok, Status == ACCOUNTCREATE ? SuccessMessages.AccountCreated : SuccessMessages.AccountUpdated);
         }
     }
 }

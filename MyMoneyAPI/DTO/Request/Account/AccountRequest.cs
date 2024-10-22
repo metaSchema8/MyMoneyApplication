@@ -1,10 +1,9 @@
-﻿namespace MyMoneyAPI.DTO.Response.Account
+﻿namespace MyMoneyAPI.DTO.Request.Account
 {
-    public class AccountCreationResponse
+    public class AccountRequest
     {
         public string AccountName { get; set; } = string.Empty;
         public decimal BaseAmount { get; set; }
-        public decimal Balance { get; set; }
         public string Icon { get; set; } = string.Empty;
     }
 }
