@@ -242,6 +242,8 @@ Part 3 - Implementing the Action Methods
 	git push -u origin master: Push changes to the remote repository.
 	git pull origin master: Pull changes from the remote repository.
 
+Part 3 - Implementing Transactions
+
 
 
 
